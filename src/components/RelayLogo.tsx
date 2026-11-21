@@ -1,29 +1,27 @@
+import { useId } from 'react'
 import clsx from 'clsx'
 
 type RelayLogoProps = {
   theme?: 'dark' | 'light'
   size?: 'sm' | 'md' | 'lg'
   showWordmark?: boolean
-  /** Gold wordmark and mark, matching the lucky-spin lobby. */
+  /** Kept so existing headers can ask for the gold treatment. The mark is the same seal. */
   accent?: 'brand' | 'gold'
   className?: string
 }
 
 const sizeMap = {
   sm: {
-    wrap: 'w-9 h-9 rounded-xl',
-    mark: 'w-5 h-5',
+    wrap: 'w-9 h-9 rounded-[10px]',
     word: 'text-lg',
   },
   md: {
-    wrap: 'w-11 h-11 rounded-2xl',
-    mark: 'w-6 h-6',
+    wrap: 'w-11 h-11 rounded-xl',
     word: 'text-[1.35rem]',
   },
   lg: {
-    wrap: 'w-16 h-16 rounded-[1.25rem]',
-    mark: 'w-9 h-9',
-    word: 'text-3xl',
+    wrap: 'w-16 h-16 rounded-[1.15rem]',
+    word: 'text-[1.85rem]',
   },
 }
 
@@ -36,57 +34,63 @@ export default function RelayLogo({
 }: RelayLogoProps) {
   const s = sizeMap[size]
   const isLight = theme === 'light'
-  const gold = accent === 'gold' && !isLight
+  const goldWord = accent === 'gold' && !isLight
+  const rawId = useId().replace(/:/g, '')
+  const rimId = `${rawId}-rim`
+  const faceId = `${rawId}-face`
+  const metalId = `${rawId}-metal`
 
   return (
     <div className={clsx('inline-flex items-center gap-2.5', className)}>
       <div
         className={clsx(
-          'relative flex items-center justify-center',
-          gold
-            ? 'shadow-[0_16px_35px_-18px_rgba(201,146,46,0.85)]'
-            : 'shadow-[0_16px_35px_-18px_rgba(14,143,106,0.75)]',
+          'relative flex shrink-0 items-center justify-center overflow-hidden shadow-[0_10px_22px_-16px_rgba(201,146,46,0.95)]',
           s.wrap
         )}
         style={{
-          background: gold
-            ? 'linear-gradient(145deg, #fff6d4 0%, #e7b84a 46%, #a87422 100%)'
-            : isLight
-              ? 'linear-gradient(145deg, #d9ffe9 0%, #1fbf8a 42%, #0c6b4d 100%)'
-              : 'linear-gradient(145deg, #7dffc3 0%, #12a36e 46%, #c9a227 100%)',
+          background: 'linear-gradient(155deg, #fff6d4 0%, #e7b84a 42%, #8a5a16 100%)',
         }}
+        aria-hidden
       >
-        <svg
-          viewBox="0 0 24 24"
-          className={clsx(s.mark, gold || isLight ? 'text-[#123024]' : 'text-[#06281c]')}
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden
-        >
+        <svg viewBox="0 0 48 48" className="h-[86%] w-[86%]" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={faceId} x1="10" y1="4" x2="40" y2="46" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#17362a" />
+              <stop offset="1" stopColor="#07140f" />
+            </linearGradient>
+            <linearGradient id={rimId} x1="8" y1="6" x2="40" y2="42" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#fff4cc" />
+              <stop offset="0.48" stopColor="#e7b84a" />
+              <stop offset="1" stopColor="#a87422" />
+            </linearGradient>
+            <linearGradient id={metalId} x1="16" y1="11" x2="34" y2="39" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#fff6d4" />
+              <stop offset="0.42" stopColor="#f0c86a" />
+              <stop offset="1" stopColor="#c9922e" />
+            </linearGradient>
+          </defs>
+          <rect width="48" height="48" rx="11" fill={`url(#${faceId})`} />
+          <rect x="1.15" y="1.15" width="45.7" height="45.7" rx="10" stroke={`url(#${rimId})`} strokeWidth="1.4" />
           <path
-            d="M12 3.2L19.2 8.2L12 20.8L4.8 8.2L12 3.2Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
+            d="M16.2 13.2H32.2V26.4C32.2 33.1 27 36.8 20.2 36.8"
+            stroke={`url(#${metalId})`}
+            strokeWidth="4.8"
+            strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <path d="M4.8 8.2H19.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          <path d="M12 3.2L9.4 8.2L12 20.8L14.6 8.2L12 3.2Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
         </svg>
       </div>
 
       {showWordmark ? (
         <span
           className={clsx(
-            'relay-wordmark font-extrabold leading-none',
+            'relay-wordmark font-extrabold leading-none tracking-[-0.035em]',
             s.word,
-            gold
-              ? 'relay-gold-type inline-block tracking-[0.01em]'
-              : isLight
-                ? 'tracking-tight text-slate-900'
-                : 'tracking-tight text-white'
+            goldWord && 'drop-shadow-[0_1px_0_rgba(0,0,0,0.25)]'
           )}
         >
-          JuwaLoot
+          <span className={isLight ? 'text-slate-900' : 'text-white'}>Juwa</span>
+          <span className={isLight ? 'text-[#0e8f6a]' : 'relay-gold-type'}>Loot</span>
         </span>
       ) : null}
     </div>

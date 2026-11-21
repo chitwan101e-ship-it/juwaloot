@@ -4940,7 +4940,7 @@ export default function DashboardPage() {
         <div className="admin-sidebar-top px-2 pb-3">
           <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#4e5a7a] mb-2">Staff Portal</p>
           <div className="flex items-center gap-2.5 mb-2.5">
-            <RelayLogo size="sm" theme="dark" className="gap-2 [&>div]:!h-[30px] [&>div]:!w-[30px] [&>div]:!rounded-lg [&_svg]:!h-3.5 [&_svg]:!w-3.5 [&_span]:!text-base [&_span]:!font-extrabold [&_span]:!tracking-[-0.025em]" />
+            <RelayLogo size="sm" theme="dark" className="gap-2 [&>div]:!h-[30px] [&>div]:!w-[30px] [&>div]:!rounded-[9px] [&_span]:!text-base [&_span]:!font-extrabold [&_span]:!tracking-[-0.03em]" />
           </div>
           <div className="flex items-center gap-2.5">
             <div className="relative shrink-0">
