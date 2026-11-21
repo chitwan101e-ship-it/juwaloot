@@ -270,9 +270,9 @@ export default function SignUpPage() {
   const registerSubmitReady = true
 
   return (
-    <div className="min-h-screen bg-[#07140f] flex flex-col">
-      <main className="flex-1 flex items-center justify-center p-4">
-        <div className="bg-[#101c16]/95 rounded-3xl shadow-2xl border border-emerald-900/40 w-full max-w-lg p-8">
+    <div className="relay-auth-frame h-dvh overflow-hidden bg-[#07140f] flex flex-col">
+      <main className="flex-1 min-h-0 flex items-center justify-center p-4">
+        <div className="relay-overlay-scroll bg-[#101c16]/95 rounded-3xl shadow-2xl border border-emerald-900/40 w-full max-w-lg max-h-full overflow-y-auto p-8">
           <div className="text-center mb-6">
             <RelayLogo size="lg" className="justify-center mb-2" />
             <p className="text-[#8ea89a] text-sm">Open a player account and talk to the desk.</p>
