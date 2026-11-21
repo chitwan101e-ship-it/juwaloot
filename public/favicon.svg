@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="JuwaLoot">
+  <defs>
+    <linearGradient id="juwalootMark" x1="12%" y1="0%" x2="88%" y2="100%">
+      <stop offset="0%" stop-color="#7dffc3" />
+      <stop offset="48%" stop-color="#12a36e" />
+      <stop offset="100%" stop-color="#c9a227" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#juwalootMark)" />
+  <g transform="translate(6.2 5.4)" fill="none" stroke="#06281c" stroke-width="1.7" stroke-linejoin="round">
+    <path d="M9.8 1.2L17.2 6.4L9.8 19.4L2.4 6.4L9.8 1.2Z" />
+    <path d="M2.4 6.4H17.2" stroke-linecap="round" />
+    <path d="M9.8 1.2L7.1 6.4L9.8 19.4L12.5 6.4L9.8 1.2Z" />
+  </g>
+</svg>
