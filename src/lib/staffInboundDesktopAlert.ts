@@ -27,11 +27,6 @@ function markStaffInboundPopupShown(conversationId: string | null, body: string)
   window.setTimeout(() => recentInboundPopups.delete(key), 5000)
 }
 
-function shouldSuppressInboundPopupForActiveView(isActivelyViewingThread: (conversationId: string) => boolean, conversationId: string): boolean {
-  if (typeof document === 'undefined') return isActivelyViewingThread(conversationId)
-  return !document.hidden && isActivelyViewingThread(conversationId)
-}
-
 export function showStaffInboundDesktopPopup(opts: {
   conversationId: string
   body: string
@@ -45,14 +40,15 @@ export function showStaffInboundDesktopPopup(opts: {
   const preview = messagePreview(opts.body, opts.hasImage)
   if (!shouldShowStaffInboundPopup(opts.conversationId, preview)) return
 
-  const shown = showDesktopNotification({
+  void showDesktopNotification({
     title: customerMessagePopupTitle(opts.senderLabel, opts.fallbackTitle ?? 'New message'),
     body: preview,
     tag: opts.tag ?? `relay-msg-${opts.conversationId}-${Date.now()}`,
     onClick: opts.onOpen,
+  }).then((shown) => {
+    if (shown.ok) markStaffInboundPopupShown(opts.conversationId, preview)
+    else console.warn('[desktop-notify] message popup failed:', shown.reason)
   })
-  if (shown.ok) markStaffInboundPopupShown(opts.conversationId, preview)
-  else console.warn('[desktop-notify] message popup failed:', shown.reason)
 }
 
 export function showStaffNotificationRowDesktopPopup(opts: {
@@ -76,17 +72,18 @@ export function showStaffNotificationRowDesktopPopup(opts: {
     if (!shouldShowStaffInboundPopup(opts.conversationId ?? null, body)) return
   }
 
-  const shown = showDesktopNotification({
+  void showDesktopNotification({
     title,
     body,
-    tag: opts.notificationId ? `relay-notify-${opts.notificationId}` : `relay-notify-${opts.type}`,
+    tag: opts.notificationId ? `relay-notify-${opts.notificationId}` : `relay-notify-${opts.type}-${Date.now()}`,
     onClick: opts.onOpen,
+  }).then((shown) => {
+    if (shown.ok && opts.type === 'support_message') {
+      markStaffInboundPopupShown(opts.conversationId ?? null, body)
+    } else if (!shown.ok) {
+      console.warn('[desktop-notify] notification popup failed:', shown.reason, opts.type)
+    }
   })
-  if (shown.ok && opts.type === 'support_message') {
-    markStaffInboundPopupShown(opts.conversationId ?? null, body)
-  } else if (!shown.ok) {
-    console.warn('[desktop-notify] notification popup failed:', shown.reason, opts.type)
-  }
 }
 
 type ConvoListHint = {
@@ -113,7 +110,6 @@ export async function tryShowStaffInboundMessageDesktopPopup(
 ): Promise<void> {
   if (!isDesktopNotifyEnabled()) return
   if (msg.sender_id === ctx.staffUserId) return
-  if (shouldSuppressInboundPopupForActiveView(ctx.isActivelyViewingThread, msg.conversation_id)) return
 
   let senderLabel: string | null = null
   const cached = ctx.getConvoFromList(msg.conversation_id)

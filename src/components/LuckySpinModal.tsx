@@ -456,15 +456,15 @@ export function LuckySpinModal({ chatOpen = false }: { chatOpen?: boolean }) {
   return (
     <>
     {launcher}
-    <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-[#070b16]/80 p-4 max-[899px]:pb-[calc(8.5rem+env(safe-area-inset-bottom))]">
+    <div className="relay-overlay-scroll fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-[#07140f]/80 p-4 max-[899px]:pb-[calc(8.5rem+env(safe-area-inset-bottom))]">
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="lucky-spin-title"
-        className="relative w-full max-w-[420px] rounded-[22px] border border-[#e1b55d]/55 px-4 pb-4 pt-3.5 text-white shadow-[0_0_65px_rgba(169,71,169,0.16),0_28px_80px_rgba(0,0,0,0.55)]"
+        className="relative w-full max-w-[420px] rounded-[22px] border border-[#e1b55d]/45 px-4 pb-4 pt-3.5 text-white shadow-[0_0_48px_rgba(14,80,56,0.28),0_28px_80px_rgba(0,0,0,0.55)]"
         style={{
           background:
-            'radial-gradient(ellipse at 85% 28%, rgba(103,25,88,0.42), transparent 58%), radial-gradient(ellipse at 0% 100%, rgba(40,32,91,0.55), transparent 55%), #171127',
+            'radial-gradient(ellipse at 85% 0%, rgba(20, 120, 84, 0.28), transparent 55%), radial-gradient(ellipse at 0% 100%, rgba(12, 64, 48, 0.42), transparent 52%), #101c16',
         }}
       >
         <h2 id="lucky-spin-title" className="sr-only">
@@ -496,7 +496,7 @@ export function LuckySpinModal({ chatOpen = false }: { chatOpen?: boolean }) {
         </p>
 
         {phase === 'won' && tryAgain ? (
-          <div className="mt-4 rounded-2xl border border-[#e7c373]/40 bg-[#120e1c] px-4 py-8 text-center">
+          <div className="mt-4 rounded-2xl border border-[#e7c373]/40 bg-[#07140f] px-4 py-8 text-center">
             <p className="text-[11px] font-semibold tracking-[0.32em] text-[#edcc8e]">NO CREDITS</p>
             <p className="mt-3 bg-gradient-to-b from-[#fff6d4] via-[#f0c86a] to-[#c9922e] bg-clip-text text-[40px] font-extrabold leading-none text-transparent">
               TRY AGAIN
@@ -509,7 +509,7 @@ export function LuckySpinModal({ chatOpen = false }: { chatOpen?: boolean }) {
             ) : null}
           </div>
         ) : phase === 'won' ? (
-          <div className="mt-4 rounded-2xl border border-[#e7c373]/40 bg-[#120e1c]">
+          <div className="mt-4 rounded-2xl border border-[#e7c373]/40 bg-[#07140f]">
             <div className="px-4 pb-4 pt-5 text-center">
               <p className="text-[11px] font-semibold tracking-[0.32em] text-[#edcc8e]">YOU WON</p>
               <p className="mt-1 bg-gradient-to-b from-[#fff6d4] via-[#f0c86a] to-[#c9922e] bg-clip-text text-[64px] font-extrabold leading-none text-transparent">

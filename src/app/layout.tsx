@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import { ChunkLoadRecovery } from '@/components/ChunkLoadRecovery'
 
 /** Loaded once from the server layout so client chunks (e.g. /feed) stay smaller — avoids dev ChunkLoadError/timeouts. */
 const relayFooter = Inter({
@@ -29,7 +30,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={relayFooter.variable} suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <ChunkLoadRecovery />
+        {children}
+      </body>
     </html>
   )
 }

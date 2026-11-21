@@ -167,8 +167,8 @@ export default function PublicBusinessPage() {
   }
 
   return (
-    <div className="relay-lobby min-h-screen text-[#fff8ee]">
-      <header className="sticky top-0 z-20 border-b border-[#edc06e]/25 bg-[#120e1c]/85 backdrop-blur-xl">
+    <div className="relay-customer-dark relay-lobby flex h-dvh flex-col overflow-hidden text-[#fff8ee]">
+      <header className="z-20 shrink-0 border-b border-[#edc06e]/25 bg-[#120e1c]/85 backdrop-blur-xl">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           <button
             type="button"
@@ -185,7 +185,8 @@ export default function PublicBusinessPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8 pb-16">
+      <main className="relay-overlay-scroll min-h-0 w-full flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-3xl px-4 py-8 pb-16">
         <div className="flex flex-col sm:flex-row sm:items-start gap-6">
           <div
             className={clsx(
@@ -266,6 +267,7 @@ export default function PublicBusinessPage() {
             </ul>
           )}
         </section>
+        </div>
       </main>
     </div>
   )

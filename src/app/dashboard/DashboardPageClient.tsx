@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, memo, startTransition } from 'react'
 import type { ChangeEvent, ComponentType, CSSProperties, ReactNode } from 'react'
@@ -70,6 +70,7 @@ import { SpinReceiptCard } from '@/components/SpinReceiptCard'
 import { parseSpinReceipt, RELAY_RECEIPT_HEADER } from '@/lib/luckySpin'
 import { DesktopNotificationPrompt } from '@/components/DesktopNotificationPrompt'
 import { useDesktopMessageNotifications } from '@/hooks/useDesktopMessageNotifications'
+import { showStaffInboundDesktopPopup } from '@/lib/staffInboundDesktopAlert'
 import {
   listBusinessApprovedCustomerIds,
   listBusinessMemberProfiles,
@@ -948,6 +949,7 @@ export default function DashboardPage() {
   const threadEndRef = useRef<HTMLDivElement>(null)
   const mobileThreadShellRef = useRef<HTMLDivElement>(null)
   const staffThreadChannelRef = useRef<ReturnType<(typeof supabase)['channel']> | null>(null)
+  const staffInboxLiveChannelRef = useRef<ReturnType<(typeof supabase)['channel']> | null>(null)
   const staffThreadBroadcastReadyRef = useRef(false)
   const staffTypingSentRef = useRef(false)
   const staffTypingIdleTimerRef = useRef<number | null>(null)
@@ -2145,8 +2147,9 @@ export default function DashboardPage() {
     let cancelled = false
     async function init() {
       const {
-        data: { user },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) {
         router.replace('/login')
         return
@@ -2227,14 +2230,20 @@ export default function DashboardPage() {
   }, [router, supabase])
 
   useEffect(() => {
+    let ticks = 0
     const id = window.setInterval(() => {
+      ticks += 1
       const p = profileRef.current
       if (!p?.business_id) return
       const tab = activeTabRef.current
-      if (tab === 'inbox') void refreshDashboard(p, { scope: 'inbox' })
-      else if (tab === 'users') void refreshDashboard(p, { pendingDetail: true, scope: 'users' })
+      if (tab === 'inbox') {
+        void refreshDashboard(p, { scope: 'inbox' })
+        return
+      }
+      if (ticks % 8 !== 0) return
+      if (tab === 'users') void refreshDashboard(p, { pendingDetail: true, scope: 'users' })
       else void refreshDashboard(p, { scope: 'light' })
-    }, 60_000)
+    }, 8_000)
     return () => window.clearInterval(id)
   }, [refreshDashboard])
 
@@ -2604,6 +2613,7 @@ export default function DashboardPage() {
       .channel(`inbox-live-${businessId}`)
       .on('broadcast', { event: 'customer_message' }, ({ payload }) => {
         const row = payload as {
+          id?: string
           conversation_id?: string
           sender_id?: string
           body?: string
@@ -2613,6 +2623,13 @@ export default function DashboardPage() {
         if (!row?.conversation_id || !row.sender_id) return
         const conv = convoListRef.current.find((c) => c.id === row.conversation_id)
         if (conv && row.sender_id !== conv.customer_id) return
+        showStaffInboundDesktopPopup({
+          conversationId: row.conversation_id,
+          body: row.body ?? '',
+          hasImage: Boolean(row.image_url),
+          senderLabel: conv?.customerName,
+          tag: typeof row.id === 'string' ? `relay-msg-${row.id}` : `relay-msg-${row.conversation_id}-${row.created_at ?? ''}`,
+        })
         applyFastCustomerInboundRef.current({
           conversationId: row.conversation_id,
           preview: (row.body ?? '').trim() || (row.image_url ? '📷' : 'Message'),
@@ -2622,7 +2639,10 @@ export default function DashboardPage() {
       })
       .subscribe()
 
+    staffInboxLiveChannelRef.current = liveChannel
+
     return () => {
+      staffInboxLiveChannelRef.current = null
       if (timer) window.clearTimeout(timer)
       void supabase.removeChannel(channel)
       void supabase.removeChannel(liveChannel)
@@ -3954,6 +3974,24 @@ export default function DashboardPage() {
         replyTarget,
       })
       if (!msg) return
+      const live = staffInboxLiveChannelRef.current
+      if (live && profile.business_id) {
+        void live.send({
+          type: 'broadcast',
+          event: 'staff_message',
+          payload: {
+            id: msg.id,
+            conversation_id: selectedConvoId,
+            sender_id: profile.id,
+            body: msg.body,
+            created_at: msg.created_at,
+            image_url: msg.image_url ?? null,
+            read: msg.read ?? null,
+            read_at: msg.read_at ?? null,
+            reply_to_message_id: msg.reply_to_message_id ?? null,
+          },
+        })
+      }
       const preview = (msg.body ?? '').trim() || (msg.image_url ? '📷' : 'Reply')
       if (selectedConvoIdRef.current === selectedConvoId) staffComposerDirtyRef.current = false
       setReplyDraftFor(selectedConvoId, '')

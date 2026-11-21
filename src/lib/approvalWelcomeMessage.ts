@@ -37,7 +37,8 @@ async function assignNewlyApprovedLabel(
 export const DEFAULT_APPROVAL_WELCOME_TEMPLATE =
   "Hey {customer_name}, you are in. The JuwaLoot desk is here whenever you need a hand — just send a message."
 
-const WELCOME_BODY_PREFIX = 'Welcome,'
+/** Distinct line from DEFAULT_APPROVAL_WELCOME_TEMPLATE. The old "Welcome," check never matched "Hey …". */
+const WELCOME_BODY_MARK = 'you are in. The JuwaLoot desk is here'
 
 async function conversationHasWelcomeDm(
   admin: SupabaseClient,
@@ -62,7 +63,7 @@ async function conversationHasWelcomeDm(
     .select('id')
     .eq('conversation_id', conversationId)
     .in('sender_id', staffIds)
-    .ilike('body', `${WELCOME_BODY_PREFIX}%`)
+    .ilike('body', `%${WELCOME_BODY_MARK}%`)
     .limit(1)
   if (error) {
     console.error('[approval-welcome] welcome check:', error.message)

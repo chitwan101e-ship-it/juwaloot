@@ -79,8 +79,8 @@ export default function RulesPage() {
   }
 
   return (
-    <div className="relay-customer-dark relay-lobby min-h-screen text-[14px] leading-snug text-[#fff8ee]">
-      <header className="flex items-center gap-2 border-b border-[#edc06e]/25 bg-[#120e1c]/75 px-4 pb-2 pt-3 backdrop-blur-sm">
+    <div className="relay-customer-dark relay-lobby flex h-dvh flex-col overflow-hidden text-[14px] leading-snug text-[#fff8ee]">
+      <header className="flex shrink-0 items-center gap-2 border-b border-[#edc06e]/25 bg-[#120e1c]/75 px-4 pb-2 pt-3 backdrop-blur-sm">
         <button
           type="button"
           onClick={() => router.push('/feed')}
@@ -92,7 +92,8 @@ export default function RulesPage() {
         <h1 className="relay-gold-type text-lg font-semibold tracking-tight">House rules</h1>
       </header>
 
-      <main className="mx-auto max-w-lg px-4 pb-28 pt-5">
+      <main className="relay-overlay-scroll min-h-0 w-full flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-lg px-4 pb-28 pt-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#e7c373]">Summary</p>
         <ul className="mt-3 space-y-3 text-[13px] leading-relaxed text-[#e4d8f0]">
           <li>
@@ -168,6 +169,7 @@ export default function RulesPage() {
             For more information, open <span className="font-semibold text-[#f0c86a]">Chat</span> from the bar below
             and message our team.
           </p>
+        </div>
         </div>
       </main>
 

@@ -167,12 +167,10 @@ textarea {
   height: 0;
 }
 
-/* Customer pages are dark. The default Windows bar is a light track, so theme
-   both the page scrollbar and any inner list (feed, notifications, chat). */
+/* Player pages. Overlay thumb only — scrollbar-width makes Chrome drop the
+   webkit thumb and show the classic Windows bar. */
 html:has(.relay-customer-dark) {
   color-scheme: dark;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(141, 99, 255, 0.55) #070b16;
 }
 
 html:has(.relay-customer-dark)::-webkit-scrollbar {
@@ -181,17 +179,18 @@ html:has(.relay-customer-dark)::-webkit-scrollbar {
 }
 
 html:has(.relay-customer-dark)::-webkit-scrollbar-track {
-  background: #070b16;
+  background: transparent;
 }
 
 html:has(.relay-customer-dark)::-webkit-scrollbar-thumb {
-  background: rgba(141, 99, 255, 0.45);
-  border: 2px solid #070b16;
+  background-color: rgba(231, 184, 74, 0.42);
+  border: 3px solid transparent;
   border-radius: 999px;
+  background-clip: padding-box;
 }
 
 html:has(.relay-customer-dark)::-webkit-scrollbar-thumb:hover {
-  background: rgba(196, 181, 253, 0.75);
+  background-color: rgba(255, 223, 160, 0.72);
 }
 
 html:has(.relay-customer-dark)::-webkit-scrollbar-button,
@@ -199,19 +198,13 @@ html:has(.relay-customer-dark)::-webkit-scrollbar-corner {
   display: none;
   width: 0;
   height: 0;
-  background: #070b16;
-}
-
-.relay-customer-dark,
-.relay-customer-dark * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(141, 99, 255, 0.55) transparent;
+  background: transparent;
 }
 
 .relay-customer-dark::-webkit-scrollbar,
 .relay-customer-dark *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 .relay-customer-dark::-webkit-scrollbar-track,
@@ -221,13 +214,15 @@ html:has(.relay-customer-dark)::-webkit-scrollbar-corner {
 
 .relay-customer-dark::-webkit-scrollbar-thumb,
 .relay-customer-dark *::-webkit-scrollbar-thumb {
-  background: rgba(141, 99, 255, 0.45);
+  background-color: rgba(231, 184, 74, 0.42);
+  border: 3px solid transparent;
   border-radius: 999px;
+  background-clip: padding-box;
 }
 
 .relay-customer-dark::-webkit-scrollbar-thumb:hover,
 .relay-customer-dark *::-webkit-scrollbar-thumb:hover {
-  background: rgba(196, 181, 253, 0.75);
+  background-color: rgba(255, 223, 160, 0.72);
 }
 
 .relay-customer-dark::-webkit-scrollbar-button,
@@ -237,47 +232,42 @@ html:has(.relay-customer-dark)::-webkit-scrollbar-corner {
   height: 0;
 }
 
-/* Customer lobby — same plum field and gold type as the lucky spin card. */
+/* Player lobby — same deep green field as the sign-in card. */
 .relay-lobby {
   background:
-    radial-gradient(ellipse at 88% -8%, rgba(120, 32, 96, 0.5), transparent 46%),
-    radial-gradient(ellipse at -8% 108%, rgba(48, 36, 110, 0.62), transparent 50%),
-    #120e1c;
-  color: #fff8ee;
+    radial-gradient(ellipse at 88% -12%, rgba(20, 120, 84, 0.28), transparent 46%),
+    radial-gradient(ellipse at -10% 110%, rgba(12, 64, 48, 0.5), transparent 50%),
+    #07140f;
+  color: #f3f7f4;
 }
 
-html:has(.relay-lobby) {
-  scrollbar-color: rgba(231, 184, 74, 0.55) #120e1c;
+html:has(.relay-lobby),
+html:has(.relay-lobby) body {
+  background-color: #07140f;
 }
 
-html:has(.relay-lobby)::-webkit-scrollbar-track,
-html:has(.relay-lobby)::-webkit-scrollbar-button,
-html:has(.relay-lobby)::-webkit-scrollbar-corner {
-  background: #120e1c;
+.relay-lobby [class*='bg-[#120e1c]'] {
+  background-color: rgba(7, 20, 15, 0.94);
 }
 
-html:has(.relay-lobby)::-webkit-scrollbar-thumb {
-  background: rgba(231, 184, 74, 0.5);
-  border-color: #120e1c;
+.relay-lobby [class*='bg-[#1a1428]'] {
+  background-color: rgba(16, 28, 22, 0.96);
 }
 
-html:has(.relay-lobby)::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 223, 160, 0.75);
+.relay-lobby [class*='bg-[#140f1e]'] {
+  background-color: #0e1c16;
 }
 
-.relay-lobby,
-.relay-lobby * {
-  scrollbar-color: rgba(231, 184, 74, 0.5) transparent;
+.relay-lobby [class*='bg-[#16111f]'] {
+  background-color: rgba(7, 20, 15, 0.96);
 }
 
-.relay-lobby::-webkit-scrollbar-thumb,
-.relay-lobby *::-webkit-scrollbar-thumb {
-  background: rgba(231, 184, 74, 0.45);
+.relay-customer-dark .relay-overlay-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(231, 184, 74, 0.42);
 }
 
-.relay-lobby::-webkit-scrollbar-thumb:hover,
-.relay-lobby *::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 223, 160, 0.75);
+.relay-customer-dark .relay-overlay-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 223, 160, 0.72);
 }
 
 .relay-gold-type {

@@ -8,7 +8,13 @@ export function ChunkLoadRecovery() {
     const key = 'relay-chunk-reload'
 
     function maybeReload(reason: string) {
-      if (!/ChunkLoadError|Loading chunk .* failed/i.test(reason)) return
+      if (
+        !/ChunkLoadError|Loading chunk .* failed|Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(
+          reason
+        )
+      ) {
+        return
+      }
       if (sessionStorage.getItem(key) === '1') return
       sessionStorage.setItem(key, '1')
       window.location.reload()

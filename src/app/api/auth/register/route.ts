@@ -33,10 +33,18 @@ function cleanSignupQuestion(raw: unknown): string | null {
   return s.slice(0, 500)
 }
 
-/** Run welcome/notification work after the HTTP response to shorten signup under DB load. */
+/**
+ * Run follow-up work after the HTTP response.
+ * The promise must be returned. Next.js only waits for what `after` returns;
+ * a voided promise is frozen when the response ends, which dropped the welcome DM.
+ */
 function deferRegisterFollowUp(task: () => Promise<void>) {
-  after(() => {
-    void task().catch((err) => console.error('[register] deferred follow-up:', err))
+  after(async () => {
+    try {
+      await task()
+    } catch (err) {
+      console.error('[register] deferred follow-up:', err)
+    }
   })
 }
 
@@ -243,24 +251,18 @@ export async function POST(req: NextRequest) {
       : ''
 
     if (autoApproved) {
-      const userIdForApproval = userId
-      const customerNameForApproval = customerName
-      const cleanUsernameForApproval = cleanUsername
-      const emailNormForApproval = emailNorm
-      deferRegisterFollowUp(async () => {
-        const target = await resolveBusinessForNewCustomerSignup(supabase)
-        if (!target) {
-          console.error(
-            '[register] auto-approve: no business with staff found — welcome DM and follow skipped. Set PRIMARY_SUPPORT_BUSINESS_SLUG in env.'
-          )
-          return
-        }
+      const target = await resolveBusinessForNewCustomerSignup(supabase)
+      if (!target) {
+        console.error(
+          '[register] auto-approve: no business with staff found — welcome DM and follow skipped. Set PRIMARY_SUPPORT_BUSINESS_SLUG in env.'
+        )
+      } else {
         try {
           await completeCustomerApproval(supabase, {
-            customerId: userIdForApproval,
-            customerName: customerNameForApproval,
-            username: cleanUsernameForApproval,
-            email: emailNormForApproval,
+            customerId: userId,
+            customerName,
+            username: cleanUsername,
+            email: emailNorm,
             businessId: target.id,
             businessName: target.name,
             staffSenderId: target.staffSenderId,
@@ -268,7 +270,7 @@ export async function POST(req: NextRequest) {
         } catch (err) {
           console.error('[register] completeCustomerApproval:', err)
         }
-      })
+      }
     }
 
     deferRegisterFollowUp(async () => {

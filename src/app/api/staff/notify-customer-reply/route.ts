@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { ensureUnreadReminderStreak } from '@/lib/unreadMessageReminders'
+import { broadcastInboxEvent } from '@/lib/broadcastInboxEvent'
 
 /**
  * Inserts the in-app "support_reply" notification for the customer after staff sends a message.
@@ -81,6 +82,13 @@ export async function POST(req: NextRequest) {
 
     // Start (or keep) unread reminder ladder — emails only if still unread at 15m / 3h / 24h.
     await ensureUnreadReminderStreak(admin, conversationId, preview)
+
+    await broadcastInboxEvent(bid, 'staff_message', {
+      conversation_id: convo.id,
+      sender_id: user.id,
+      body: preview,
+      created_at: new Date().toISOString(),
+    })
 
     return NextResponse.json({ ok: true, email: 'deferred_unread_reminders' })
   } catch (e) {

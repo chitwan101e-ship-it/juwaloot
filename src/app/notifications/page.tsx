@@ -287,8 +287,8 @@ export default function NotificationsPage() {
     .filter((group) => group.rows.length > 0)
 
   return (
-    <div className={`relay-customer-dark min-h-screen pb-28 ${customerChrome ? 'relay-lobby text-[#fff8ee]' : 'bg-[#070b16] text-white'}`}>
-      <header className={`sticky top-0 z-40 border-b ${customerChrome ? 'border-[#edc06e]/25 bg-[#120e1c]/80 backdrop-blur-md' : 'border-white/[0.08] bg-[#070b16]'}`}>
+    <div className={`relay-customer-dark flex h-dvh flex-col overflow-hidden ${customerChrome ? 'relay-lobby text-[#fff8ee]' : 'bg-[#070b16] text-white'}`}>
+      <header className={`z-40 shrink-0 border-b ${customerChrome ? 'border-[#edc06e]/25 bg-[#120e1c]/80 backdrop-blur-md' : 'border-white/[0.08] bg-[#070b16]'}`}>
         <div className="max-w-3xl mx-auto px-3 sm:px-4 h-14 flex items-center gap-2">
           <button
             type="button"
@@ -324,7 +324,8 @@ export default function NotificationsPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto p-4">
+      <main className="relay-overlay-scroll min-h-0 w-full flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-3xl p-4 pb-28">
         <div className="mb-4 flex gap-2">
           {(['all', 'unread'] as const).map((key) => {
             const active = listFilter === key
@@ -437,6 +438,7 @@ export default function NotificationsPage() {
             ))}
           </div>
         )}
+        </div>
       </main>
 
       {portalRole === 'customer' ? (

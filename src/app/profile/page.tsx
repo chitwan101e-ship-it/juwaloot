@@ -191,8 +191,8 @@ export default function ProfilePage() {
   ]
 
   return (
-    <div className={`relay-customer-dark min-h-screen text-[14px] leading-snug ${pageBg}`}>
-      <header className={`px-4 pt-3 pb-2 flex items-center gap-2 border-b backdrop-blur-sm ${customerChrome ? 'border-[#edc06e]/25 bg-[#120e1c]/75' : 'border-white/[0.08] bg-[#0b1020]/40'}`}>
+    <div className={`relay-customer-dark h-dvh overflow-hidden flex flex-col text-[14px] leading-snug ${pageBg}`}>
+      <header className={`shrink-0 px-4 pt-3 pb-2 flex items-center gap-2 border-b backdrop-blur-sm ${customerChrome ? 'border-[#edc06e]/25 bg-[#120e1c]/75' : 'border-white/[0.08] bg-[#0b1020]/40'}`}>
         <button
           type="button"
           onClick={() => router.push('/feed')}
@@ -204,9 +204,8 @@ export default function ProfilePage() {
         <h1 className={customerChrome ? 'relay-gold-type text-lg font-semibold tracking-tight' : 'text-lg font-bold tracking-tight text-white'}>Profile</h1>
       </header>
 
-      <main
-        className={`max-w-md mx-auto px-4 pt-4 ${profile.role === 'customer' ? 'pb-28' : 'pb-24'}`}
-      >
+      <main className="relay-overlay-scroll min-h-0 w-full flex-1 overflow-y-auto">
+        <div className={`mx-auto w-full max-w-md px-4 pt-4 ${profile.role === 'customer' ? 'pb-28' : 'pb-24'}`}>
         <div className="flex items-start gap-3">
           <div className="relative shrink-0">
             <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => void onAvatarPick(e)} />
@@ -318,6 +317,7 @@ export default function ProfilePage() {
         >
           Sign out
         </button>
+        </div>
       </main>
 
       {profile.role === 'customer' ? (

@@ -7,7 +7,6 @@ import {
   getDesktopNotifyPermission,
   isDesktopNotifyEnabled,
   isDesktopNotifyPromptDismissed,
-  requestDesktopNotifyPermission,
   dismissDesktopNotifyPrompt,
   sendTestDesktopNotification,
   type DesktopNotifyPermission,
@@ -37,10 +36,10 @@ export function DesktopNotificationPrompt({ variant, isLight = false, layout = '
     sync()
   }, [sync])
 
-  function onSendTestAlert() {
+  async function onSendTestAlert() {
     setTestStatus('idle')
     setTestMessage(null)
-    const result = sendTestDesktopNotification()
+    const result = await sendTestDesktopNotification()
     if (result.ok) {
       setTestStatus('ok')
       setTestMessage(
@@ -152,12 +151,38 @@ export function DesktopNotificationPrompt({ variant, isLight = false, layout = '
       ? 'Blocked in browser — allow notifications for this site in site settings.'
       : null
 
-  async function onEnable() {
+  async function onEnable(pending?: Promise<NotificationPermission>) {
     setBusy(true)
+    setTestStatus('idle')
+    setTestMessage(null)
     try {
-      const p = await requestDesktopNotifyPermission()
-      setPermission(p)
+      const result = pending ? await pending : await Notification.requestPermission()
+      if (result === 'granted') {
+        const { setDesktopNotifyEnabled, showDesktopNotification } = await import('@/lib/desktopNotifications')
+        setDesktopNotifyEnabled(true)
+        const shown = await showDesktopNotification({
+          title: 'JuwaLoot alerts on',
+          body: 'A corner popup will show for each new player message and signup request.',
+          tag: `relay-alerts-on-${Date.now()}`,
+        })
+        setPermission('granted')
+        if (!shown.ok) {
+          setTestStatus('fail')
+          setTestMessage(shown.reason ?? 'Allowed, but Windows hid the popup.')
+        }
+      } else if (result === 'denied') {
+        setPermission('denied')
+        setTestStatus('fail')
+        setTestMessage('Blocked. Click the lock icon in the address bar, open Notifications, and choose Allow.')
+      } else {
+        setPermission('default')
+        setTestStatus('fail')
+        setTestMessage('No Allow prompt appeared. Click the lock icon in the address bar, then Notifications, then Allow.')
+      }
       sync()
+    } catch (err) {
+      setTestStatus('fail')
+      setTestMessage(err instanceof Error ? err.message : 'Could not ask for notification permission.')
     } finally {
       setBusy(false)
     }
@@ -175,14 +200,23 @@ export function DesktopNotificationPrompt({ variant, isLight = false, layout = '
           <BellRing className="mt-0.5 w-3.5 h-3.5 shrink-0 opacity-80" aria-hidden />
           <div className="min-w-0">
             <p className={`text-[11px] font-semibold ${isLight ? 'text-slate-800' : 'text-white'}`}>{title}</p>
-            <p className={`mt-1 text-[10px] leading-relaxed ${muted}`}>{deniedHint ?? description}</p>
+            <p
+              className={`mt-1 text-[10px] leading-relaxed ${
+                testMessage ? (testStatus === 'ok' ? 'text-emerald-300' : 'text-amber-200') : muted
+              }`}
+            >
+              {testMessage ?? deniedHint ?? description}
+            </p>
           </div>
         </div>
         {permission !== 'denied' ? (
           <button
             type="button"
             disabled={busy}
-            onClick={() => void onEnable()}
+            onClick={() => {
+              const pending = Notification.requestPermission()
+              void onEnable(pending)
+            }}
             className={`mt-2.5 w-full rounded-lg px-3 py-1.5 text-[11px] font-semibold disabled:opacity-50 ${btn}`}
           >
             {busy ? '…' : label}
@@ -207,7 +241,10 @@ export function DesktopNotificationPrompt({ variant, isLight = false, layout = '
         <button
           type="button"
           disabled={busy}
-          onClick={() => void onEnable()}
+          onClick={() => {
+            const pending = Notification.requestPermission()
+            void onEnable(pending)
+          }}
           className={`shrink-0 rounded-[8px] px-2.5 py-1 text-[11px] font-semibold disabled:opacity-50 ${btn}`}
         >
           {busy ? '…' : label}

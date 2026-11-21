@@ -1388,7 +1388,7 @@ export default function FeedPage() {
       msgDebounce = window.setTimeout(() => {
         void refreshMessagingUI(customerId)
         void loadUnreadNotifications(customerId)
-      }, 350)
+      }, 50)
     }
 
     const channel = supabase
@@ -1563,6 +1563,45 @@ export default function FeedPage() {
 
     const channel = supabase
       .channel(`inbox-live-${bid}`)
+      .on('broadcast', { event: 'staff_message' }, ({ payload }) => {
+        const row = payload as {
+          id?: string
+          conversation_id?: string
+          sender_id?: string
+          body?: string
+          created_at?: string
+          image_url?: string | null
+          read?: boolean | null
+          read_at?: string | null
+          reply_to_message_id?: string | null
+        }
+        if (!row?.conversation_id) return
+        const uid = profile?.id
+        if (uid) {
+          void refreshMessagingUI(uid)
+          void loadUnreadNotifications(uid)
+        }
+        if (!isActivelyViewingCustomerChat(row.conversation_id) || !row.id) return
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === row.id)) return prev
+          return [
+            ...prev,
+            {
+              id: row.id as string,
+              conversation_id: row.conversation_id as string,
+              sender_id: row.sender_id ?? '',
+              body: row.body ?? '',
+              created_at: row.created_at ?? new Date().toISOString(),
+              image_url: row.image_url ?? null,
+              read: row.read ?? null,
+              read_at: row.read_at ?? null,
+              reply_to_message_id: row.reply_to_message_id ?? null,
+              reply_to: null,
+              profiles: null,
+            },
+          ]
+        })
+      })
       .subscribe((status) => {
         if (stopped) return
         inboxLiveBroadcastReadyRef.current = status === 'SUBSCRIBED'
@@ -1685,7 +1724,7 @@ export default function FeedPage() {
       if (document.visibilityState !== 'visible') return
       void loadUnreadNotifications(profile.id)
       void refreshMessagingUI(profile.id)
-    }, 20_000)
+    }, 8_000)
     return () => window.clearInterval(id)
   }, [profile?.id, loadUnreadNotifications, refreshMessagingUI])
 
@@ -1910,7 +1949,7 @@ export default function FeedPage() {
       setReplyTargets((prev) => omitRecordKey(prev, bizId))
 
       const live = inboxLiveChannelRef.current
-      if (live && inboxLiveBroadcastReadyRef.current) {
+      if (live) {
         void live.send({
           type: 'broadcast',
           event: 'customer_message',
@@ -2180,7 +2219,7 @@ export default function FeedPage() {
 
         <main
           id="relay-feed-main"
-          className="min-h-0 flex-1 overflow-y-auto flex flex-col gap-3 pt-2 pb-[calc(4.75rem+env(safe-area-inset-bottom))] min-[900px]:pt-0 min-[900px]:pb-0 scroll-mt-2"
+          className="relay-overlay-scroll min-h-0 flex-1 overflow-y-auto flex flex-col gap-3 pt-2 pb-[calc(4.75rem+env(safe-area-inset-bottom))] min-[900px]:pt-0 min-[900px]:pb-0 scroll-mt-2"
         >
           {followedBusinessIds.length === 0 ? (
             <div className={`rounded-2xl border p-8 sm:p-10 text-center ${panelBg}`}>
@@ -2732,7 +2771,7 @@ export default function FeedPage() {
 
           {supportPanelView === 'list' && (
             <div className="flex-1 flex flex-col min-h-0 bg-[#140f1e]">
-              <div className="flex-1 overflow-y-auto">
+              <div className="relay-overlay-scroll flex-1 overflow-y-auto">
                 {sortedBusinesses.length === 0 ? (
                   <p className="p-6 text-center text-sm text-[#cbb89a]">
                     No businesses to message yet.
@@ -2809,7 +2848,7 @@ export default function FeedPage() {
               <div
                 ref={supportMessagesScrollRef}
                 onScroll={supportChatScroll.onScroll}
-                className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0"
+                className="relay-overlay-scroll flex-1 overflow-y-auto p-3 space-y-2 min-h-0"
               >
                 {supportLoading && messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 px-4 text-center">

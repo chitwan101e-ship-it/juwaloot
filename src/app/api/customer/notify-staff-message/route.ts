@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notifyBusinessStaffOfCustomerMessage } from '@/lib/notifyBusinessStaffOfCustomerMessage'
+import { broadcastInboxEvent } from '@/lib/broadcastInboxEvent'
 
 /**
  * Inserts in-app support_message notifications for all staff when a customer sends a message.
@@ -58,6 +59,13 @@ export async function POST(req: NextRequest) {
       console.error('[notify-staff-message]', errorMessage)
       return NextResponse.json({ error: errorMessage }, { status: 500 })
     }
+
+    await broadcastInboxEvent(convo.business_id as string, 'customer_message', {
+      conversation_id: convo.id,
+      sender_id: user.id,
+      body: preview,
+      created_at: new Date().toISOString(),
+    })
 
     return NextResponse.json({ ok: true })
   } catch (e) {

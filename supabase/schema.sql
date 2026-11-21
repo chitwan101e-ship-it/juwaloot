@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- JuwaLoot — one database file
 -- Run this once on a brand-new Supabase project.
 -- If a previous run stopped halfway, run supabase/migrations/000_reset_app_schema.sql

@@ -46,9 +46,10 @@ export async function requestDesktopNotifyPermission(): Promise<DesktopNotifyPer
   const result = await Notification.requestPermission()
   if (result === 'granted') {
     setDesktopNotifyEnabled(true)
-    showDesktopNotification({
+    await showDesktopNotification({
       title: 'JuwaLoot alerts on',
       body: 'A corner popup will show for each new player message and signup request.',
+      tag: `relay-alerts-on-${Date.now()}`,
     })
   }
   return result === 'granted' ? 'granted' : result === 'denied' ? 'denied' : 'default'
@@ -60,11 +61,24 @@ export type DesktopNotifyResult = {
 }
 
 function desktopNotificationIcon(): string | undefined {
-  try {
-    return `${window.location.origin}/icons/chat-bubble.png`
-  } catch {
-    return undefined
+  return undefined
+}
+
+let notificationServiceWorker: Promise<ServiceWorkerRegistration | null> | null = null
+
+function notificationServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return Promise.resolve(null)
+  if (!notificationServiceWorker) {
+    notificationServiceWorker = navigator.serviceWorker
+      .register('/notify-sw.js')
+      .then(() => navigator.serviceWorker.ready)
+      .catch((err) => {
+        console.warn('[desktop-notify] service worker failed', err)
+        notificationServiceWorker = null
+        return null
+      })
   }
+  return notificationServiceWorker
 }
 
 function createDesktopNotification(
@@ -95,48 +109,60 @@ function createDesktopNotification(
   return n
 }
 
-export function showDesktopNotification(opts: {
+export async function showDesktopNotification(opts: {
   title: string
   body: string
   tag?: string
   onClick?: () => void
-}): DesktopNotifyResult {
+}): Promise<DesktopNotifyResult> {
   if (!desktopNotifySupported()) {
     return { ok: false, reason: 'This browser does not support desktop notifications.' }
   }
   if (Notification.permission === 'denied') {
     return {
       ok: false,
-      reason: 'Notifications are blocked. In Edge: Settings → Cookies and site permissions → Notifications → allow this site.',
+      reason: 'Notifications are blocked. Click the lock icon in the address bar, open Notifications, and choose Allow.',
     }
   }
   if (Notification.permission !== 'granted') {
     return { ok: false, reason: 'Click Enable message alerts first, then Allow in the browser prompt.' }
   }
 
+  // new Notification() often does not draw a Windows corner banner while this tab is focused.
+  // A service worker notification does.
   try {
-    createDesktopNotification(opts, true)
+    const registration = await notificationServiceWorkerRegistration()
+    if (registration) {
+      await registration.showNotification(opts.title, {
+        body: opts.body,
+        tag: opts.tag,
+        silent: false,
+        data: { href: window.location.href },
+        ...(opts.tag ? { renotify: true } : {}),
+      } as NotificationOptions)
+      return { ok: true }
+    }
+  } catch (err) {
+    console.warn('[desktop-notify] service worker notify failed', err)
+  }
+
+  try {
+    createDesktopNotification(opts, false)
     return { ok: true }
   } catch (err) {
-    try {
-      createDesktopNotification(opts, false)
-      return { ok: true }
-    } catch (retryErr) {
-      const msg = retryErr instanceof Error ? retryErr.message : err instanceof Error ? err.message : 'Unknown error'
-      console.error('[desktop-notify] show failed:', err, retryErr)
-      return {
-        ok: false,
-        reason: `Could not show alert (${msg}). Check Windows Settings → System → Notifications and ensure Edge is allowed.`,
-      }
+    const msg = err instanceof Error ? err.message : 'Unknown error'
+    console.error('[desktop-notify] show failed:', err)
+    return {
+      ok: false,
+      reason: `Could not show alert (${msg}). In Windows Settings, allow notifications for Chrome or Edge.`,
     }
   }
 }
 
-export function sendTestDesktopNotification(): DesktopNotifyResult {
+export function sendTestDesktopNotification(): Promise<DesktopNotifyResult> {
   return showDesktopNotification({
     title: 'JuwaLoot test alert',
     body: 'Desktop alerts are working. New player messages will pop up like this.',
-    // Unique tag each click — Edge/Chrome hide repeat toasts when the tag is reused.
     tag: `relay-test-alert-${Date.now()}`,
   })
 }

@@ -29,6 +29,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/__nextjs') ||
     pathname === '/favicon.ico' ||
+    pathname === '/notify-sw.js' ||
     /\.(?:ico|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot)$/i.test(pathname)
   ) {
     return NextResponse.next({ request: req })
@@ -87,6 +88,40 @@ function isPublicAuthApiPath(pathname: string): boolean {
   )
 }
 
+function decodeBase64Url(input: string): string {
+  const pad = input.length % 4 === 0 ? '' : '='.repeat(4 - (input.length % 4))
+  const b64 = input.replace(/-/g, '+').replace(/_/g, '/') + pad
+  return atob(b64)
+}
+
+/** True when the signed-in cookie is still valid, so the page does not wait on Supabase Auth. */
+function sessionCookieStillValid(req: NextRequest, skewSec = 120): boolean {
+  const chunks: { index: number; value: string }[] = []
+  for (const cookie of req.cookies.getAll()) {
+    const match = cookie.name.match(/-auth-token(?:\.(\d+))?$/)
+    if (!match) continue
+    chunks.push({ index: match[1] ? Number(match[1]) : 0, value: cookie.value })
+  }
+  if (chunks.length === 0) return false
+  chunks.sort((a, b) => a.index - b.index)
+  let raw = chunks.map((chunk) => chunk.value).join('')
+  if (raw.startsWith('base64-')) raw = raw.slice('base64-'.length)
+  try {
+    const session = JSON.parse(decodeBase64Url(raw)) as { expires_at?: number; access_token?: string }
+    let exp = session.expires_at
+    if (!exp && session.access_token) {
+      const payload = session.access_token.split('.')[1]
+      if (!payload) return false
+      const claims = JSON.parse(decodeBase64Url(payload)) as { exp?: number }
+      exp = claims.exp
+    }
+    if (!exp) return false
+    return exp > Math.floor(Date.now() / 1000) + skewSec
+  } catch {
+    return false
+  }
+}
+
 async function withSupabaseSession(req: NextRequest, res: NextResponse) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -121,6 +156,8 @@ async function withSupabaseSession(req: NextRequest, res: NextResponse) {
     return res
   }
 
+  if (sessionCookieStillValid(req)) return res
+
   try {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
@@ -140,7 +177,7 @@ async function withSupabaseSession(req: NextRequest, res: NextResponse) {
     await Promise.race([
       supabase.auth.getUser(),
       new Promise<void>((resolve) => {
-        setTimeout(resolve, 5_000)
+        setTimeout(resolve, 1_500)
       }),
     ])
   } catch {
